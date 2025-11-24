@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <!-- Debug command to toggle the theme -->
+  <!--
+  <Commands package="guidAutoThemeSwitcherNGPackage">
+    <Groups>
+      <Group guid="guidAutoThemeSwitcherNGPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidAutoThemeSwitcherNGPackageCmdSet" id="ThemeSwitcherId" priority="0x0100" type="Button">
+        <Parent guid="guidAutoThemeSwitcherNGPackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Toggle Theme (Light/Dark)</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+  -->
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidAutoThemeSwitcherNGPackage" value="{7fa49da3-9846-41e9-b776-2bcbc0ed0fd3}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidAutoThemeSwitcherNGPackageCmdSet" value="{d0ce1988-39ec-4857-a950-031f55501660}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="ThemeSwitcherId" value="0x0100" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
