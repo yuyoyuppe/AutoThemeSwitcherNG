@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="AutoThemeSwitcherNG.92d3b3df-30b6-4683-9182-2e9e5857d0e1" Version="1.0" Language="en-US" Publisher="Yuyoyuppe" />
+    <Identity Id="AutoThemeSwitcherNG.92d3b3df-30b6-4683-9182-2e9e5857d0e1" Version="1.1" Language="en-US" Publisher="Yuyoyuppe" />
     <DisplayName>AutoThemeSwitcherNG</DisplayName>
     <Description>Syncs Visual Studio 2026+ theme with system theme automatically.</Description>
   </Metadata>
