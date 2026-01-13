@@ -4,8 +4,7 @@
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
 
-  <!-- Debug command to toggle the theme -->
-  <!--
+#if DEBUG
   <Commands package="guidAutoThemeSwitcherNGPackage">
     <Groups>
       <Group guid="guidAutoThemeSwitcherNGPackageCmdSet" id="MyMenuGroup" priority="0x0600">
@@ -14,15 +13,15 @@
     </Groups>
 
     <Buttons>
-      <Button guid="guidAutoThemeSwitcherNGPackageCmdSet" id="ThemeSwitcherId" priority="0x0100" type="Button">
+      <Button guid="guidAutoThemeSwitcherNGPackageCmdSet" id="TestThemeId" priority="0x0100" type="Button">
         <Parent guid="guidAutoThemeSwitcherNGPackageCmdSet" id="MyMenuGroup" />
         <Strings>
-          <ButtonText>Toggle Theme (Light/Dark)</ButtonText>
+          <ButtonText>Test theme</ButtonText>
         </Strings>
       </Button>
     </Buttons>
   </Commands>
-  -->
+#endif
 
   <Symbols>
     <!-- This is the package guid. -->
@@ -31,7 +30,9 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidAutoThemeSwitcherNGPackageCmdSet" value="{d0ce1988-39ec-4857-a950-031f55501660}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="ThemeSwitcherId" value="0x0100" />
+#if DEBUG
+      <IDSymbol name="TestThemeId" value="0x0101" />
+#endif
     </GuidSymbol>
   </Symbols>
 </CommandTable>

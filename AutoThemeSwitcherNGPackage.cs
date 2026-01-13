@@ -1,10 +1,9 @@
-﻿using EnvDTE;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Drawing;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -33,6 +32,10 @@ public sealed class AutoThemeSwitcherNGPackage : AsyncPackage {
             // If logging fails, we shouldn't crash the package load
         }
 
+#if DEBUG
+        await InitializeDebugCommandsAsync();
+#endif
+
         try {
             _themeWatcher = new SystemThemeWatcher();
             _themeWatcher.Changed += OnSystemThemeChanged;
@@ -57,30 +60,43 @@ public sealed class AutoThemeSwitcherNGPackage : AsyncPackage {
         ThreadHelper.ThrowIfNotOnUIThread();
 
         try {
-            Color color = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-            double luminance = ((0.299 * color.R) + (0.587 * color.G) + (0.114 * color.B)) / 255;
-            bool vsIsDark = luminance < 0.5;
+            GeneralOptions options = (GeneralOptions)GetDialogPage(typeof(GeneralOptions));
 
-            // Only switch if the current VS theme doesn't match the system theme
-            if (vsIsDark != systemIsDark) {
-                GeneralOptions options = (GeneralOptions)GetDialogPage(typeof(GeneralOptions));
-                string targetThemeKeyword = systemIsDark ? options.DarkThemeName : options.LightThemeName;
+            bool changed = false;
+            if (options.LightThemeId == Guid.Empty) {
+                options.LightThemeId = GeneralOptions.DefaultLightThemeId;
+                changed = true;
+            }
 
-                string commandName = $"Tools.{targetThemeKeyword}";
+            if (options.DarkThemeId == Guid.Empty) {
+                options.DarkThemeId = GeneralOptions.DefaultDarkThemeId;
+                changed = true;
+            }
 
-                if (GetService(typeof(DTE)) is DTE dte) {
-                    try {
-                        dte.ExecuteCommand(commandName);
-                    } catch (Exception ex) {
-                        VsShellUtilities.ShowMessageBox(
-                          this,
-                          $"Could not execute command '{commandName}'. Error: {ex.Message}",
-                          "Auto Theme Switcher",
-                          OLEMSGICON.OLEMSGICON_WARNING,
-                          OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                          OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                    }
-                }
+            if (changed) {
+                options.SaveSettingsToStorage();
+            }
+
+            Guid targetThemeId = systemIsDark ? options.DarkThemeId : options.LightThemeId;
+
+            if (targetThemeId == Guid.Empty) {
+                return;
+            }
+
+            Guid? currentThemeId = ThemeManager.TryGetCurrentThemeId();
+            if (currentThemeId is Guid cur && cur == targetThemeId) {
+                return; // already on the desired theme
+            }
+
+            bool ok = ThemeManager.TrySetTheme(targetThemeId, persist: true);
+            if (!ok) {
+                VsShellUtilities.ShowMessageBox(
+                  this,
+                  $"Could not set theme to '{ThemeManager.TryGetThemeName(targetThemeId) ?? targetThemeId.ToString("D")}'.",
+                  "Auto Theme Switcher",
+                  OLEMSGICON.OLEMSGICON_WARNING,
+                  OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                  OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
             }
         } catch (Exception ex) {
             VsShellUtilities.ShowMessageBox(
@@ -101,5 +117,37 @@ public sealed class AutoThemeSwitcherNGPackage : AsyncPackage {
         base.Dispose(disposing);
     }
 
+#if DEBUG
+    private static readonly Guid CommandSet = new("d0ce1988-39ec-4857-a950-031f55501660");
+    private const int TestThemeCommandId = 0x0101;
+
+    private async Task InitializeDebugCommandsAsync() {
+        if (await GetServiceAsync(typeof(IMenuCommandService)) is not OleMenuCommandService mcs) {
+            return;
+        }
+
+        CommandID cmdId = new(CommandSet, TestThemeCommandId);
+        MenuCommand menuItem = new(OnTestTheme, cmdId);
+        mcs.AddCommand(menuItem);
+    }
+
+    private void OnTestTheme(object sender, EventArgs e) {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        IReadOnlyList<ThemeManager.ThemeInfo> themes = ThemeManager.GetAvailableThemes();
+
+        Log.Warning("Available themes: {0}", themes.Count);
+        int max = Math.Min(themes.Count, 100);
+        for (int i = 0; i < max; i++) {
+            ThemeManager.ThemeInfo t = themes[i];
+            string line = $"[{i + 1:000}] {t.Name} ({t.Id:D})";
+            System.Diagnostics.Debug.WriteLine(line);
+            Log.Warning(line);
+        }
+
+        if (themes.Count > max) {
+            Log.Warning("... truncated ({0} total themes)", themes.Count);
+        }
+    }
+#endif
     #endregion
 }
